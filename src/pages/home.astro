@@ -1,7 +1,7 @@
 ---
 import NoteLayout from "../layouts/NoteLayout.astro";
 import { collections } from '../content/config'; // Import collections config
-import { Typst } from "../components";
+import { Typst } from "astro-typst/src/components";
 
 type CollectionName = keyof typeof collections;
 const allCollections = Object.keys(collections) as CollectionName[]

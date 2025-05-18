@@ -1,24 +1,18 @@
 import { defineConfig } from "astro/config";
-import typst from "./src/lib/integration.js";
 import { type AstroIntegration } from "astro";
-
-/**
- * This is only for the demo site.
- * It has no effect when you are importing the package.
- */
-const debug: AstroIntegration = {
-    name: "astro-typst-debug-dont-use-or-you-will-be-fired",
-    hooks: {
-        "astro:config:setup": () => {
-            process.env.ASTRO_TYPST = "true";
-        }
-    },
-}
+import { typst } from 'astro-typst';
+import playformCompress from "@playform/compress";
+import terser from '@rollup/plugin-terser';
+import swup from '@swup/astro';
+import SwupScrollPlugin from '@swup/scroll-plugin';
+import SwupParallelPlugin from '@swup/parallel-plugin';
 
 // https://astro.build/config
 export default defineConfig({
+    devToolbar: {enabled: false},
+    site: 'https://username.github.io',
+    // base: '/note',
     integrations: [
-        debug,
         typst({
             options: {
                 remPx: 14
@@ -29,8 +23,20 @@ export default defineConfig({
                     return "html";
                 return "svg";
             }
-        })
+        }),
+        terser({
+            compress: true,
+            mangle: true,
+        }),
+        swup({
+            plugins: [new SwupScrollPlugin(), new SwupParallelPlugin()],
+            containers: ["#swup"]
+        }),
+        playformCompress()
     ],
-    site: 'https://username.github.io',
-    // base: '/note',
+    vite: {
+        ssr: {
+            external: ["@myriaddreamin/typst-ts-node-compiler"]
+        }
+    },
 });

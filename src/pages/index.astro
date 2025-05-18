@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
-import Typst from "../components/Typst.astro";
-import { TypstDocInput } from "../lib/prelude";
+import { Typst } from "astro-typst/src/components";
+import { TypstDocInput } from "astro-typst/src/lib/prelude";
 import Simp from "./simp.typ";
 import SimpHtml from "./simp-html.typ?html";
 
@@ -20,7 +20,7 @@ $oo$ $display(lim_(x → 0))$
 $ cal(A) := { x in RR | x "is natural" } $
 `;
 const input: TypstDocInput = {
-  mainFilePath: "src/content/collection1/test/基本测试.typ",
+  mainFilePath: "src/pages/test.typ",
   inputs: {
     "something": "from Astro!",
   }
@@ -66,5 +66,45 @@ const collections = await getCollection("collection1");
       <h2>5: <code>mainFilePath</code></h2>
       <Typst src={input.mainFilePath!} />
     </main>
+    <script>
+      function findAncestor(el, cls) {
+        while ((el = el.parentElement) && !el.classList.contains(cls));
+        return el;
+      }
+
+      window.handleTypstLocation = function (elem, page, x, y) {
+        const docRoot = findAncestor(elem, 'typst-doc');
+        const children = docRoot.children;
+        let nthPage = 0;
+        for (let i = 0; i < children.length; i++) {
+          if (children[i].tagName === 'g') {
+            nthPage++;
+          }
+          if (nthPage == page) {
+            const pageElement = children[i]; // Renamed 'page' to 'pageElement' to avoid conflict
+            const dataWidth = pageElement.getAttribute('data-page-width');
+            const dataHeight = pageElement.getAttribute('data-page-height');
+            const rect = pageElement.getBoundingClientRect();
+            const xOffsetInner = Math.max(0, x / dataWidth - 0.05) * rect.width;
+            const yOffsetInner = Math.max(0, y / dataHeight - 0.05) * rect.height;
+            const xOffsetInnerFix = (x / dataWidth) * rect.width - xOffsetInner;
+            const yOffsetInnerFix = (y / dataHeight) * rect.height - yOffsetInner;
+
+            const bodyOrRoot = document.body || document.firstElementChild; // Renamed 'docRoot' to 'bodyOrRoot'
+            const basePos = bodyOrRoot.getBoundingClientRect();
+
+            const xOffset = rect.left - basePos.left + xOffsetInner;
+            const yOffset = rect.top - basePos.top + yOffsetInner;
+            const left = xOffset + xOffsetInnerFix;
+            const top = yOffset + yOffsetInnerFix;
+
+            console.log('scrolling to', xOffset, yOffset, left, top);
+
+            window.scrollTo(xOffset, yOffset);
+            return;
+          }
+        }
+      };
+    </script>
   </body>
 </html>
